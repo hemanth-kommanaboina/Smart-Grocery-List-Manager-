@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FreshCart - Smart Grocery Manager</title>
+  <style>
+    :root {
+      --primary: #3cb371;      /* Soft fresh green */
+      --accent: #1c7c6b;       /* Gentle teal */
+      --background: #f8fdfb;   /* Light, pleasant background */
+      --text-dark: #2f2f2f;
+      --card-bg: #ffffff;
+    }
+
+    body {
+      font-family: "Poppins", sans-serif;
+      background-color: var(--background);
+      color: var(--text-dark);
+      margin: 0;
+      padding: 0;
+    }
+
+    /* ===== Header ===== */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background-color: var(--card-bg);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-container img {
+      height: 50px;
+      width: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    h1 {
+      font-size: 1.9rem;
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    /* ===== Login Page ===== */
+    #loginPage {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 90vh;
+      text-align: center;
+    }
+
+    #loginPage h2 {
+      color: var(--primary);
+      font-size: 1.7rem;
+      margin-bottom: 10px;
+    }
+
+    #loginForm {
+      background: #ffffff;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    #loginForm input {
+      width: 250px;
+      margin: 0.5rem 0;
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    #loginForm input:focus {
+      border-color: var(--accent);
+    }
+
+    #loginForm button {
+      width: 100%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.7rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    #loginForm button:hover {
+      background: var(--accent);
+    }
+
+    /* ===== Grocery Section ===== */
+    #groceryApp {
+      display: none;
+      padding: 2rem;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    input, select, button {
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    input, select {
+      background-color: #fff;
+      color: var(--text-dark);
+    }
+
+    button {
+      background-color: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      border: none;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: var(--accent);
+    }
+
+    .list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .item {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: transform 0.2s;
+    }
+
+    .item:hover {
+      transform: translateY(-3px);
+    }
+
+    .item.expiring {
+      border: 2px solid #ff6b6b;
+      background-color: #fff5f5;
+    }
+
+    .item h3 {
+      color: var(--accent);
+      margin-bottom: 0.3rem;
+    }
+
+    .item small {
+      color: #555;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 1.4rem; }
+      .controls { flex-direction: column; }
+      #loginForm { width: 85%; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-container">
+      <!-- ✅ Replace this path if your image is in same folder -->
+      <img src="Screenshot 2025-10-27 191906.png" alt="Logo">
+      <h1>FreshCart</h1>
+    </div>
+  </header>
+
+  <!-- Login Page -->
+  <div id="loginPage">
+    <h2>Welcome to FreshCart</h2>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Enter Username" required><br>
+      <input type="password" id="password" placeholder="Enter Password" required><br>
+      <button type="submit">Login / Sign Up</button>
+    </form>
+  </div>
+
+  <!-- Grocery App -->
+  <section id="groceryApp">
+    <div class="controls">
+      <input type="text" id="itemName" placeholder="Item name">
+      <input type="number" id="quantity" placeholder="Qty">
+      <input type="text" id="category" placeholder="Category">
+      <input type="date" id="expiryDate">
+      <button id="addItem">Add Item</button>
+    </div>
+
+    <div class="controls">
+      <select id="categoryFilter">
+        <option value="">Filter by Category</option>
+      </select>
+      <button id="sortExpiry">Sort by Expiry</button>
+    </div>
+
+    <div class="list" id="groceryList"></div>
+  </section>
+
+  <script>
+  // ===== LOGIN HANDLER =====
+  const loginForm = document.getElementById("loginForm");
+  const loginPage = document.getElementById("loginPage");
+  const groceryApp = document.getElementById("groceryApp");
+
+  loginForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    // ✅ Allow only valid Gmail addresses
+    const gmailPattern = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+
+    if (!gmailPattern.test(username)) {
+      alert("Please enter a valid Gmail address (example@gmail.com)");
+      return;
+    }
+
+    if (!password) {
+      alert("Please enter your password!");
+      return;
+    }
+
+    localStorage.setItem("loggedUser", username);
+    loginPage.style.display = "none";
+    groceryApp.style.display = "block";
+  });
+
+  // ===== GROCERY LIST LOGIC =====
+  let groceries = JSON.parse(localStorage.getItem("groceries")) || [];
+
+  const addItemBtn = document.getElementById("addItem");
+  const list = document.getElementById("groceryList");
+  const categoryFilter = document.getElementById("categoryFilter");
+
+  function renderList() {
+    list.innerHTML = "";
+    let filtered = groceries;
+
+    const selectedCategory = categoryFilter.value;
+    if (selectedCategory)
+      filtered = groceries.filter(i => i.category === selectedCategory);
+
+    filtered.forEach((item, index) => {
+      const div = document.createElement("div");
+      div.className = "item";
+      const daysLeft = (new Date(item.expiryDate) - new Date()) / (1000 * 60 * 60 * 24);
+      if (daysLeft < 3) div.classList.add("expiring");
+
+      div.innerHTML = `
+        <h3>${item.name}</h3>
+        <small>Qty: ${item.quantity}</small><br>
+        <small>Category: ${item.category}</small><br>
+        <small>Expiry: ${item.expiryDate}</small><br><br>
+        <button onclick="deleteItem(${index})">Delete</button>
+      `;
+      list.appendChild(div);
+    });
+
+    const categories = [...new Set(groceries.map(i => i.category))];
+    categoryFilter.innerHTML =
+      `<option value="">Filter by Category</option>` +
+      categories.map(c => `<option value="${c}">${c}</option>`).join("");
+  }
+
+  function saveList() {
+    localStorage.setItem("groceries", JSON.stringify(groceries));
+  }
+
+  addItemBtn.addEventListener("click", () => {
+    const name = document.getElementById("itemName").value.trim();
+    const quantity = document.getElementById("quantity").value;
+    const category = document.getElementById("category").value.trim();
+    const expiryDate = document.getElementById("expiryDate").value;
+
+    if (!name || !quantity || !category || !expiryDate) return alert("Fill all fields!");
+
+    groceries.push({ name, quantity, category, expiryDate });
+    saveList();
+    renderList();
+
+    document.getElementById("itemName").value = "";
+    document.getElementById("quantity").value = "";
+    document.getElementById("category").value = "";
+    document.getElementById("expiryDate").value = "";
+  });
+
+  function deleteItem(index) {
+    groceries.splice(index, 1);
+    saveList();
+    renderList();
+  }
+
+  document.getElementById("sortExpiry").addEventListener("click", () => {
+    groceries.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+    saveList();
+    renderList();
+  });
+
+  renderList();
+</script>
+
+</body>
+</html>
